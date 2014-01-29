@@ -1,23 +1,25 @@
 import math, functools, itertools, cloudy
 
 class HexGrid(object):
-	def __init__(self, game, hexside = 15, xsize = 360, ysize = 180):
+	def __init__(self, game, hexside = 15, xsize = 180, ysize = 90):
 		self.game = game
 
 		self.hexside = float(hexside)
 		self.xsize = xsize
 		self.ysize = ysize
 
+		self.cloud = cloudy.Cloud()
+
 		#Heights are stored [y][x]
 		self.heights = list()
 		for i in range(self.ysize):
 			newcol = list()
 			for j in range(self.xsize):
-				if cloudy.checkcloud(i, j, 0):
-					newcol.append(Height(1))
+				if self.cloud.checkcloud(x=2*i-j%2, y=2*j):
+					newcol.append(Height(self.cloud.cloudbase(x=2*i-j%2, y=2*j)))
+					# newcol.append(Height(1))
 				else:
 					newcol.append(Height(0))
-				# newcol.append(Height(float(i+j)/(self.ysize+self.xsize)))
 			self.heights.append(newcol)
 
 	def retrieve_height(self, x, y):
