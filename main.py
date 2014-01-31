@@ -8,12 +8,18 @@ from OpenGL.GLU import *
 from OpenGL.GL import shaders
 
 from opengl_display import OpenGLDisplay
+from pygame_display import PygameDisplay
 from control import Controller
 from hexgrid import HexGrid
 
+from pygame.locals import *
+
+import pygame
+
 class Game(object):
     def __init__(self):
-        self.view = OpenGLDisplay(self, width=1200, height=600)
+        # self.view = OpenGLDisplay(self, width=1200, height=600)
+        self.view = PygameDisplay(self, width=1200, height=600)
         self.controller = Controller(self)
         self.model = HexGrid(self)
 
@@ -21,12 +27,23 @@ class Game(object):
 
     def setupUniverse(self):
         self.view.setupView()
-        self.controller.setupController()
+        # self.controller.setupController()
 
-        glutMainLoop()
+        # glutMainLoop()
+        clock = pygame.time.Clock()
+        while 1:
+            clock.tick(60)
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    return
+                elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                    return
+
+            self.view.drawScene()
 
     def teardownUniverse(self):
-        self.controller.teardownController()
+        # self.controller.teardownController()
         self.view.teardownView()
 
         exit()

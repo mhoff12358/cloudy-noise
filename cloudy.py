@@ -20,23 +20,23 @@ def newhash(val):
 		print minhashval, maxhashval
 
 def inthash(prehash):
-	return int(hashlib.md5(prehash).hexdigest(), 16)
+	return int(hashlib.sha1(prehash).hexdigest(), 16)
 
 def randhash(prehash):
 	random.seed(prehash)
 	return random.randrange(1000000)
 
 class Cloud(object):
-	def __init__(self, hashfn = inthash, seed = 0, cloud_prob=1/300., maxhash = math.pow(16, 33)):
+	def __init__(self, hashfn = inthash, seed = 0, cloud_prob=1/100., maxhash = math.pow(16, 40)):
 		self.hashfn = hashfn
+		self.maxhash = maxhash
 		self.seed = seed
 		self.seedhash = self.hashfn(str(seed))
 		self.cloud_prob = cloud_prob
-		self.cloud_hashcap = maxhash*self.cloud_prob
-		print self.cloud_hashcap
+		self.cloud_hashcap = self.maxhash*self.cloud_prob
 
-	def pointhash(self, x, y):
-		return self.hashfn(str(int(x))+'x'+str(int(y)))
+	def pointhash(self, x, y, mod=""):
+		return self.hashfn(str(int(x))+'x'+str(int(y))+mod)
 
 	def checkcloud(self, hashval = None, x = None, y = None):
 		if hashval is None:
@@ -54,13 +54,16 @@ class Cloud(object):
 				raise Exception
 			else:
 				hashval = self.pointhash(x, y)
-				newhash(hashval)
 		hashno = abs(hashval-self.seedhash)
 
-		print "A:", math.log(hashval*(math.exp(2.7)-1)+self.cloud_hashcap)
-		print "B:", math.log(self.cloud_hashcap)
-		print "C:", (math.log(hashval*(math.exp(2.7)-1)+self.cloud_hashcap)-math.log(self.cloud_hashcap))/.9
+		return math.log((hashno/self.cloud_hashcap*(1-1/math.e))+(1/math.e))+1
 
-		return (math.log(hashno*(math.exp(2.7)-1)+self.cloud_hashcap)-math.log(self.cloud_hashcap))/.9
+	def cloudrad(self, hashval = None, x = None, y = None):
+		if hashval is None:
+			if x is None and y is None:
+				raise Exception
+			else:
+				hashval = self.pointhash(x, y, "rad")
 
-340265238700852410594329701508548580617
+		# print (hashval/self.maxhash)
+		return 24.*hashval/self.maxhash
