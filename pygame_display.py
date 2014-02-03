@@ -48,16 +48,20 @@ class PygameDisplay(object):
         hg = self.game.model
         pixel = pygame.Surface((5, 5))
 
-        for x in range(hg.size[0]):
-            for y in range(hg.size[1]):
-                if hg.retrieve_center(x, y):
+        for x in range(hg.get_size(0)):
+            for y in range(hg.get_size(1)):
+                if hg.get_center(x, y):
                     pixel.fill((0, 0, 0))
                 else:
-                    pixel.fill((int(hg.retrieve_height(x, y)*255), 255, int(255*hg.retrieve_height(x, y))))
+                    if int(hg.get_height(x, y)*255) == 0:
+                        pixel.fill((0, 0, 255))
+                    else:
+                        pixel.fill((int(hg.get_height(x, y)*255), 255, int(255*hg.get_height(x, y))))
                 self.window.blit(pixel, (5*x, 5*y))
 
         for x in range(len(hg.hist)):
-            pixel = pygame.Surface((5, hg.hist[x]))
+            col_width = int(self.width/len(hg.hist))
+            pixel = pygame.Surface((col_width, hg.hist[x]))
             pixel.fill((255, 0, 0))
-            self.window.blit(pixel, (5*x, self.game.view.height-hg.hist[x]))
+            self.window.blit(pixel, (col_width*x, self.game.view.height-hg.hist[x]))
 

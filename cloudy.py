@@ -52,18 +52,20 @@ class CloudGrid(object):
 		self.cloud_prob = cloud_prob
 		self.cloud_hashcap = self.hashfn.maxhash*self.cloud_prob
 		self.max_radius = max_radius
+		self.over_scan = int(max_radius+.5)
 
-		self.height_add_fn = lambda x, y: x+(1-x)*y
 		self.distance_fn = lambda dist, rad: math.pow((rad-dist)/rad, 2)
 
 		self.heights = []
-		self.size = size
+		self.original_size = size
+		self.actual_size = (size[0]+2*self.over_scan, size[1]+2*self.over_scan)
 
 		#############
 		#Stuff used to internal tracking/stats, not actual output data
 		self.centers = []
 		self.hist = []
-		for i in range(self.game.view.width/5):
+		for i in range(255):
+		# for i in range(self.game.view.width/5):
 			self.hist.append(0)
 		#############
 
@@ -84,45 +86,54 @@ class CloudGrid(object):
 	def point_rad(self, hashval = None, x = None, y = None):
 		return self.max_radius*hashval/self.hashfn.maxhash
 
-	def height_finalize_fn(self, height):
+	def height_finalize_fn(self, x, y, height):
 		############
-		self.hist[int(height*len(self.hist))] += 1
+		if x >= self.over_scan and x <= self.actual_size[0]-self.over_scan:
+			if y >= self.over_scan and y <= self.actual_size[1]-self.over_scan:
+				self.hist[int((1-height)*len(self.hist))] += 1
 		############
-		return height
+		return 1-height
+
+	def height_add_fn(self, h1, h2):
+		# print h1, h2
+		return h1 * (1-h2)
 
 	def compute_cloud(self):
 		self.heights = []
-		for x in range(self.size[0]):
+		for x in range(self.actual_size[0]):
 			newrow = []
-			for y in range(self.size[1]):
-				newrow.append(0.0)
+			for y in range(self.actual_size[1]):
+				newrow.append(1.0)
 			self.heights.append(newrow)
 
 		self.centers = []
-		for x in range(self.size[0]):
+		for x in range(self.actual_size[0]):
 			newrow = []
-			for y in range(self.size[1]):
+			for y in range(self.actual_size[1]):
 				newrow.append(False)
 			self.centers.append(newrow)
 			
-		for x in range(self.size[0]):
-			for y in range(self.size[1]):
+		for x in range(self.actual_size[0]):
+			for y in range(self.actual_size[1]):
 				if self.check_point(x=x, y=y):
 					self.centers[x][y] = True
 					base = self.point_height(x=x, y=y)
 					rad = self.point_rad(x=x, y=y)
-					for px in range(max(int(x-rad), 0), min(int(x+rad+1), self.size[0])):
-						for py in range(max(int(rad-y), 0), min(int(rad+y+1), self.size[1])):
+					for px in range(max(int(x-rad), 0), min(int(x+rad+1), self.actual_size[0])):
+						for py in range(max(int(rad-y), 0), min(int(rad+y+1), self.actual_size[1])):
 							dist = math.sqrt(math.pow(x-px,2)+math.pow(y-py,2))
 							if dist < rad:
 								self.heights[px][py] = self.height_add_fn(self.heights[px][py], self.distance_fn(dist, rad)*base)
 
-		for x in range(self.size[0]):
-			for y in range(self.size[1]):
-				self.heights[x][y] = self.height_finalize_fn(self.heights[x][y])
+		for x in range(self.actual_size[0]):
+			for y in range(self.actual_size[1]):
+				self.heights[x][y] = self.height_finalize_fn(x, y, self.heights[x][y])
 
-	def retrieve_center(self, x, y):
-		return self.centers[x][y]
+	def get_center(self, x, y):
+		return self.centers[x+self.over_scan][y+self.over_scan]
 
-	def retrieve_height(self, x, y):
-		return self.heights[x][y]
+	def get_height(self, x, y):
+		return self.heights[x+self.over_scan][y+self.over_scan]
+
+	def get_size(self, xory):
+		return self.original_size[xory]
