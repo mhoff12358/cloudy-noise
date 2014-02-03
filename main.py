@@ -10,7 +10,7 @@ from OpenGL.GL import shaders
 from opengl_display import OpenGLDisplay
 from pygame_display import PygameDisplay
 from control import Controller
-from hexgrid import HexGrid
+from cloudy import CloudGrid
 
 from pygame.locals import *
 
@@ -19,9 +19,9 @@ import pygame
 class Game(object):
     def __init__(self):
         # self.view = OpenGLDisplay(self, width=1200, height=600)
-        self.view = PygameDisplay(self, width=1200, height=600)
+        self.view = PygameDisplay(self, width=1200, height=1000)
         self.controller = Controller(self)
-        self.model = HexGrid(self)
+        self.model = CloudGrid(self)
 
         self.setupUniverse()
 

@@ -29,6 +29,7 @@ class HexGrid(object):
 							dist = math.sqrt(math.pow(x-px,2)+math.pow(y-py,2))
 							if dist < rad:
 								self.retrieve_height(px, py).apply_raise(math.pow((rad-dist)/rad, 2)*base)
+		
 		total = 0
 		for x in range(self.xsize):
 			for y in range(self.ysize):
