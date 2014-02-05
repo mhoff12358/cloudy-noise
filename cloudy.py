@@ -54,8 +54,6 @@ class CloudGrid(object):
 		self.max_radius = max_radius
 		self.over_scan = int(max_radius+.5)
 
-		self.distance_fn = lambda dist, rad: math.pow((rad-dist)/rad, 2)
-
 		self.heights = []
 		self.original_size = size
 		self.actual_size = (size[0]+2*self.over_scan, size[1]+2*self.over_scan)
@@ -96,7 +94,10 @@ class CloudGrid(object):
 
 	def height_add_fn(self, h1, h2):
 		# print h1, h2
-		return h1 * (1-h2)
+		return h1 * h2
+
+	def distance_fn(self, base, dist, rad):
+		return 1-(1-base)*math.pow((rad-dist)/rad, 2)
 
 	def compute_cloud(self):
 		self.heights = []
@@ -123,7 +124,7 @@ class CloudGrid(object):
 						for py in range(max(int(rad-y), 0), min(int(rad+y+1), self.actual_size[1])):
 							dist = math.sqrt(math.pow(x-px,2)+math.pow(y-py,2))
 							if dist < rad:
-								self.heights[px][py] = self.height_add_fn(self.heights[px][py], self.distance_fn(dist, rad)*base)
+								self.heights[px][py] = self.height_add_fn(self.heights[px][py], self.distance_fn(base, dist, rad))
 
 		for x in range(self.actual_size[0]):
 			for y in range(self.actual_size[1]):
