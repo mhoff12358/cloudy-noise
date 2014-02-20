@@ -11,7 +11,7 @@ LD_FLAGS = -lmingw32 -mwindows -mconsole -std=c++11 $(GL_LIB) $(SDL_LIB)
 all: cloud.exe
 
 cloud.exe: cloud.o
-	$(COMPILER) cloud.o $(LD_FLAGS) -o $@
+	$(COMPILER) cloud_example.cpp cloud.o $(LD_FLAGS) -o $@
 
 cloud.o: cloud.cpp cloud.h
 	$(COMPILER) $(COMPILER_FLAGS) cloud.cpp -o $@

@@ -9,23 +9,35 @@ CloudGrid::CloudGrid(string seed_val, float cloud_prob, float max_rad) {
 	over_scan = (int)max_rad;
 }
 
-float CloudGrid::pointhash(int x, int y) {
+hvt CloudGrid::pointhash(int x, int y) {
 	string newmod;
 	return pointhash(x, y, newmod);
 }
 
-float CloudGrid::pointhash(int x, int y, string mod) {
+#define MASK_32 (((uint64_t)1<<32)-1)
+uint32_t hashfn(string prehash) {
+	size_t numchars = prehash.size();
+	const char * data = prehash.data();
+	uint64_t hashval = 0xcbf29ce484222325;
+	while (numchars--) {
+		hashval = (*data++ ^ hashval) * 0x100000001b3;
+	}
+	return (uint32_t)(hashval>>32) ^ (hashval & MASK_32);
+}
+
+hvt CloudGrid::pointhash(int x, int y, string mod) {
 	std::stringstream hashstr;
 	hashstr << x << y << mod << seed;
-	hash<string> hashfn;
-	return hashfn(hashstr.str());
+	hvt retval = hashfn(hashstr.str());
+	std::cout << (float)retval/(float)((hvt)-1) << std::endl;
+	return retval;
 }
 
 bool CloudGrid::check_point(int x, int y) {
 	return check_point(pointhash(x, y));
 }
 
-bool CloudGrid::check_point(size_t hashval) {
+bool CloudGrid::check_point(hvt hashval) {
 	return (hashval < cloud_hashcap);
 }
 
@@ -33,7 +45,10 @@ float CloudGrid::point_height(int x, int y) {
 	return point_height(pointhash(x, y));
 }
 
-float CloudGrid::point_height(size_t hashval) {
+float CloudGrid::point_height(hvt hashval) {
+	// std::cout << "hashval: " << (float)hashval << std::endl;
+	// std::cout << "cloud_hashcap: " << (float)cloud_hashcap << std::endl;
+	// std::cout << "gotten_height: " << log((float)hashval/(float)cloud_hashcap*(1-exp(-1))+exp(-1))+1 << std::endl;
 	return log((float)hashval/(float)cloud_hashcap*(1-exp(-1))+exp(-1))+1;
 }
 
@@ -41,8 +56,8 @@ float CloudGrid::point_radius(int x, int y) {
 	return point_radius(pointhash(x, y));
 }
 
-float CloudGrid::point_radius(size_t hashval) {
-	return max_radius*(float)hashval/(float)((size_t)-1);
+float CloudGrid::point_radius(hvt hashval) {
+	return max_radius*(float)hashval/(float)((hvt)-1);
 }
 
 float CloudGrid::height_finalize_fn(int x, int y, float height) {
@@ -54,6 +69,7 @@ float CloudGrid::height_add_fn(float h1, float h2) {
 }
 
 float CloudGrid::distance_fn(float base_height, float dist, float rad) {
+	// std::cout << "distancefn'd: " << 1-(1-base_height)*pow((rad-dist)/rad, 2) << std::endl;
 	return 1-(1-base_height)*pow((rad-dist)/rad, 2);
 }
 
@@ -70,6 +86,14 @@ float CloudGrid::get_point(int x, int y) {
 		return cloud[x-cloud_size[0]][y-cloud_size[1]];
 	}
 	return 0.0;
+}
+
+void CloudGrid::set_size(array<int, 4> new_size) {
+	resize_cloud(new_size);
+}
+
+array<int, 4> CloudGrid::get_size() {
+	return cloud_size;
 }
 
 void CloudGrid::resize_cloud(array<int, 4> newsize) {
@@ -144,6 +168,7 @@ void CloudGrid::generate_cloud(array<int, 4> preserve_area) {
 }
 
 void CloudGrid::add_cloud(int x, int y, array<int, 4> preserve_area) {
+	if (check_point(x,y)) {
 	float pheight = point_height(x, y);
 	float pradius = point_radius(x, y);
 	int rad = (int)(pradius+1);
@@ -154,6 +179,7 @@ void CloudGrid::add_cloud(int x, int y, array<int, 4> preserve_area) {
 				set_point(px, py, height_add_fn(get_point(px, py), distance_fn(pheight, dist, pradius)));
 			}
 		}
+	}
 	}
 }
 
@@ -173,10 +199,3 @@ void CloudGrid::write_cloud(string filename) {
 
 // }
 
-int main() {
-	CloudGrid cg("hello", 0.5, 24.0);
-	cg.resize_cloud({{-1, -2, 50, 50}});
-	// cg.resize_cloud(size);
-	cg.write_cloud("cloud.txt");
-	return 0;
-}

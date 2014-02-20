@@ -7,6 +7,8 @@
 #include <array>
 #include <math.h>
 
+#define hvt uint32_t
+
 using std::string;
 using std::hash;
 using std::list;
@@ -29,14 +31,14 @@ public:
 	CloudGrid(string, float, float);
 	CloudGrid(float, float);
 
-	float pointhash(int x, int y, string mod);
-	float pointhash(int x, int y);
+	hvt pointhash(int x, int y, string mod);
+	hvt pointhash(int x, int y);
 	bool check_point(int x, int y);
-	bool check_point(size_t hashval);
+	bool check_point(hvt hashval);
 	float point_height(int x, int y);
-	float point_height(size_t hashval);
+	float point_height(hvt hashval);
 	float point_radius(int x, int y);
-	float point_radius(size_t hashval);
+	float point_radius(hvt hashval);
 
 	float height_finalize_fn(int, int, float);
 	float height_add_fn(float, float);
@@ -50,6 +52,7 @@ public:
 
 	float get_point(int, int);
 	void set_point(int, int, float);
-
+	array<int, 4> get_size();
+	void set_size(array<int, 4>);
 	// void compute_cloud();
 };
